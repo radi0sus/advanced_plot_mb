@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>advanced-plot-mb</title>
+  <link rel="stylesheet" href="./static/css/style.css" />
+</head>
+
+<body>
+  <div class="app">
+
+    <header class="topbar">
+      <div class="brand">
+        <h1>advanced-plot-mb</h1>
+        <p>ORCA Mößbauer Viewer for ⁵⁷Fe spectra</p>
+      </div>
+
+      <div id="dropZone" class="drop-zone">
+        <div>
+          <strong>Drop .out / .txt / .tsv files here</strong><br />
+          <span>ORCA outputs and parameter tables are converted to editable rows.</span>
+        </div>
+      </div>
+
+      <div class="toolbar-actions">
+        <button id="addOrcaBtn" type="button" class="btn primary">Add ORCA</button>
+        <button id="addTxtBtn" type="button" class="btn secondary">Add TXT/TSV</button>
+        <button id="addManualRowBtn" type="button" class="btn subtle">+ Manual row</button>
+      </div>
+
+      <input id="orcaFileInput" type="file" accept=".out" multiple hidden />
+      <input id="txtFileInput" type="file" accept=".txt,.tsv" multiple hidden />
+    </header>
+
+    <section class="plot-card">
+      <div class="plot-header">
+        <div>
+          <h2>Mößbauer spectrum</h2>
+          <p>Relative transmission from all active rows.</p>
+        </div>
+    
+        <div class="plot-actions">
+          <label class="compact-toggle" for="showComponents">
+            Components
+            <span class="switch">
+              <input id="showComponents" type="checkbox" checked />
+              <span class="slider"></span>
+            </span>
+          </label>
+    
+          <label class="compact-toggle" for="fillSpectra">
+            Fill
+            <span class="switch">
+              <input id="fillSpectra" type="checkbox" />
+              <span class="slider"></span>
+            </span>
+          </label>
+    
+          <label class="compact-toggle" for="showLineMarkers">
+            δ markers
+            <span class="switch">
+              <input id="showLineMarkers" type="checkbox" />
+              <span class="slider"></span>
+            </span>
+          </label>
+    
+          <div class="plot-range-controls">
+            <div class="control">
+              <label for="velocityMin">v min / mm s⁻¹</label>
+              <input id="velocityMin" class="compact-number" type="number" step="0.1" value="-6" />
+            </div>
+    
+            <div class="control">
+              <label for="velocityMax">v max / mm s⁻¹</label>
+              <input id="velocityMax" class="compact-number" type="number" step="0.1" value="6" />
+            </div>
+    
+            <label class="compact-toggle" for="autoRangeToggle">
+              Auto range
+              <span class="switch">
+                <input id="autoRangeToggle" type="checkbox" checked />
+                <span class="slider"></span>
+              </span>
+            </label>
+    
+            <div class="control">
+              <label>&nbsp;</label>
+              <button id="resetRangeBtn" type="button" class="btn subtle">Reset range</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+      <div id="plot" class="plot-area"></div>
+    </section>
+
+    <section class="panel export-card">
+      <div class="export-card-body">
+        <div>
+          <strong>Export</strong>
+          <small>Download the current spectrum, calculated data, or active parameter table.</small>
+        </div>
+
+        <div class="export-actions">
+          <button id="exportPngBtn" type="button" class="btn primary">PNG ↓</button>
+          <button id="exportSpectrumCsvBtn" type="button" class="btn secondary">Spectrum CSV ↓</button>
+          <button id="exportTableTsvBtn" type="button" class="btn subtle">Table TXT ↓</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel table-panel">
+      <div class="table-toolbar">
+        <div class="table-toolbar-left">
+          <strong>Parameter table</strong>
+        </div>
+
+        <div class="table-toolbar-right">
+          <label class="toggle-inline" for="linkFwhm">
+            <span>
+              FWHM linked
+              <small>When enabled, moving any FWHM slider changes all active rows.</small>
+            </span>
+
+            <span class="switch">
+              <input id="linkFwhm" type="checkbox" />
+              <span class="slider"></span>
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table id="mbParameterTable" class="mb-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>On</th>
+              <th>Type</th>
+              <th>Source</th>
+              <th>Name <small>(max. 8 chars)</small></th>
+              <th>δ / mm s⁻¹</th>
+              <th>ΔEQ / mm s⁻¹</th>
+              <th>FWHM / mm s⁻¹</th>
+              <th>Ratio</th>
+              <th>Preset</th>
+              <th>Color</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="info-grid">
+      <details class="panel" open>
+        <summary>Info & metadata</summary>
+        <div class="panel-body">
+          <pre id="infoBox" class="mono-box"></pre>
+        </div>
+      </details>
+
+      <details class="panel" open>
+        <summary>Import log</summary>
+        <div class="panel-body">
+          <pre id="logBox" class="mono-box"></pre>
+        </div>
+      </details>
+    </section>
+  </div>
+
+  <script src="./static/vendor/plotly.min.js"></script>
+
+  <script src="./static/js/namespace.js"></script>
+  <script src="./static/js/constants.js"></script>
+  <script src="./static/js/state.js"></script>
+  <script src="./static/js/math.js"></script>
+  <script src="./static/js/parsers.js"></script>
+  <script src="./static/js/table.js"></script>
+  <script src="./static/js/plot.js"></script>
+  <script src="./static/js/exports.js"></script>
+  <script src="./static/js/app.js"></script>
+</body>
+</html>
